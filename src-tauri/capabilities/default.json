@@ -1,0 +1,36 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Local DMS 主窗口的最小权限集合：无边框窗口控制、拖拽导入、系统对话框与本地 SQLite。",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-minimize",
+    "core:window:allow-maximize",
+    "core:window:allow-unmaximize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-is-maximized",
+    "core:window:allow-close",
+
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "dialog:allow-confirm",
+
+    "sql:default",
+    "sql:allow-load",
+    "sql:allow-select",
+    "sql:allow-execute",
+
+    {
+      "identifier": "fs:allow-read-text-file",
+      "comment": "拖拽导入需要读取用户从任意目录拖入的 .md 文件，路径在拖拽前无法预知。",
+      "allow": [{ "path": "**" }, { "path": "**/*" }]
+    },
+    {
+      "identifier": "fs:allow-write-text-file",
+      "comment": "导出时写入用户通过系统保存对话框选定的位置。",
+      "allow": [{ "path": "**" }, { "path": "**/*" }]
+    }
+  ]
+}

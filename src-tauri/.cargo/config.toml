@@ -1,0 +1,9 @@
+# Toolchain + linker wiring for the workspace-local Rust install.
+#
+# The workspace ships its own Rust (./.rust) because the machine has no system Rust and
+# the sandbox cannot write outside the workspace. This directory is inside src-tauri so
+# Cargo picks it up automatically for the desktop crate.
+
+[target.x86_64-pc-windows-gnu]
+linker = "E:/DevTools/MinGw64/bin/gcc.exe"
+ar = "E:/DevTools/MinGw64/bin/ar.exe"

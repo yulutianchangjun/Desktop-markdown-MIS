@@ -1,0 +1,255 @@
+/*
+ * 主题体系：深度继承 md-editor-v3，拒绝割裂。
+ *
+ * 下面的 --md-* 变量与 md-editor-v3/lib/style.css 中
+ * `.md-editor`（浅色）与 `.md-editor[data-theme=dark]`（深色）的取值逐项一致。
+ * md-editor-v3 只在编辑器根节点上声明这些变量，而本应用的窗口外壳（导航轨、卡片、
+ * 顶栏）位于编辑器之外，因此在这里镜像同一套取值，让外壳与编辑器共用一份调色板，
+ * 而不是另起一套颜色。
+ *
+ * --md-theme-color（强调色）由 JS 依据当前排版主题动态写入 app-shell 的行内样式，
+ * 所有激活态（按钮、当前选中项、拖拽高光）统一引用它。
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', system-ui, ui-sans-serif,
+    Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  background: #000;
+  color: #999;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--md-scrollbar-thumb-color, rgba(255, 255, 255, 0.18));
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--md-scrollbar-thumb-hover-color, rgba(255, 255, 255, 0.3));
+  background-clip: content-box;
+}
+
+/* ------------------------------------------------------------------ *
+ * 外壳调色板（镜像 md-editor-v3）
+ * ------------------------------------------------------------------ */
+
+.app-shell {
+  /* md-editor-v3 浅色取值 */
+  --md-color: #3f4a54;
+  --md-hover-color: #000;
+  --md-bk-color: #fff;
+  --md-bk-color-outstand: #f2f2f2;
+  --md-bk-hover-color: #f5f7fa;
+  --md-border-color: #e6e6e6;
+  --md-border-hover-color: #b9b9b9;
+  --md-border-active-color: #999;
+  --md-scrollbar-bg-color: #e2e2e2;
+  --md-scrollbar-thumb-color: rgba(0, 0, 0, 0.3);
+  --md-scrollbar-thumb-hover-color: rgba(0, 0, 0, 0.35);
+
+  /* 强调色兜底，运行时被当前排版主题覆盖 */
+  --md-theme-color: #1e80ff;
+
+  --app-bg: var(--md-bk-color);
+  --app-surface: var(--md-bk-color-outstand);
+  --app-surface-hover: var(--md-bk-hover-color);
+  --app-raised: #fff;
+  --app-border: rgba(0, 0, 0, 0.08);
+  --app-text: var(--md-color);
+  --app-text-strong: var(--md-hover-color);
+  --app-text-dim: color-mix(in srgb, var(--md-color) 62%, transparent);
+  --app-glow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --app-radius-lg: 18px;
+  --app-radius-md: 12px;
+  --app-radius-sm: 8px;
+  --app-font-size: 14px;
+
+  height: 100%;
+  display: flex;
+  /* 横向：左侧 72px 导航轨 + 右侧主工作区（顶栏 + 视图）。 */
+  flex-direction: row;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-size: var(--app-font-size);
+}
+
+/* 主推深色模式：全局容器背景对齐 md-editor-v3 默认深色底色 */
+.app-shell[data-theme='dark'] {
+  --md-color: #999;
+  --md-hover-color: #bbb;
+  --md-bk-color: #000;
+  --md-bk-color-outstand: #333;
+  --md-bk-hover-color: #1b1a1a;
+  --md-border-color: #2d2d2d;
+  --md-border-hover-color: #636262;
+  --md-border-active-color: #777;
+  --md-scrollbar-bg-color: #0f0f0f;
+  --md-scrollbar-thumb-color: #2d2d2d;
+  --md-scrollbar-thumb-hover-color: #3a3a3a;
+
+  --app-bg: #000;
+  --app-surface: #0c0c0c;
+  --app-surface-hover: #161616;
+  --app-raised: #101010;
+  /* 规范：深色下边框统一 rgba(255,255,255,0.06) 的 1px 微发光边框 */
+  --app-border: rgba(255, 255, 255, 0.06);
+  --app-text-dim: rgba(255, 255, 255, 0.34);
+  --app-glow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 8px 28px rgba(0, 0, 0, 0.55);
+}
+
+/* ------------------------------------------------------------------ *
+ * 通用 Bento 卡片
+ * ------------------------------------------------------------------ */
+
+.bento {
+  position: relative;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.bento-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex: none;
+}
+
+.bento-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--app-text-dim);
+  text-transform: uppercase;
+}
+
+.bento-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* 细长描边按钮 */
+.ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: var(--app-radius-sm);
+  border: 1px solid var(--app-border);
+  color: var(--app-text);
+  background: transparent;
+  font-size: 0.82rem;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
+}
+.ghost-btn:hover {
+  background: var(--app-surface-hover);
+  border-color: color-mix(in srgb, var(--md-theme-color) 45%, transparent);
+  color: var(--app-text-strong);
+}
+.ghost-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.ghost-btn.is-active {
+  color: var(--md-theme-color);
+  border-color: color-mix(in srgb, var(--md-theme-color) 55%, transparent);
+  background: color-mix(in srgb, var(--md-theme-color) 12%, transparent);
+}
+.ghost-btn.is-primary {
+  background: color-mix(in srgb, var(--md-theme-color) 18%, transparent);
+  border-color: color-mix(in srgb, var(--md-theme-color) 50%, transparent);
+  color: var(--app-text-strong);
+}
+
+.field {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: var(--app-radius-sm);
+  border: 1px solid var(--app-border);
+  background: var(--app-raised);
+  color: var(--app-text-strong);
+  outline: none;
+}
+.field:focus {
+  border-color: color-mix(in srgb, var(--md-theme-color) 60%, transparent);
+}
+
+.empty-hint {
+  color: var(--app-text-dim);
+  font-size: 0.84rem;
+  line-height: 1.7;
+}
+
+/* ------------------------------------------------------------------ *
+ * 编辑器：去除生硬外直角边框，完全融入卡片容器
+ * ------------------------------------------------------------------ */
+
+.editor-host .md-editor {
+  height: 100%;
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+}
+.editor-host .md-editor-content,
+.editor-host .md-editor-input-wrapper,
+.editor-host .md-editor-preview-wrapper {
+  background-color: transparent;
+}
+.editor-host .md-editor-toolbar-wrapper {
+  background-color: transparent;
+  border-bottom: 1px solid var(--app-border);
+}
+.editor-host .md-editor-preview-wrapper {
+  padding: 0 4px;
+}

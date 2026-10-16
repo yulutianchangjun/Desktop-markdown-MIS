@@ -1,0 +1,32 @@
+[package]
+name = "local-dms"
+version = "0.1.0"
+description = "本地 Markdown 文档管理系统 (Local DMS)"
+authors = ["Local DMS"]
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "local_dms_lib"
+# 桌面端只需 rlib：bin 通过它调用 run()。Tauri 模板默认还带 staticlib/cdylib，那是给
+# Android/iOS 用的；在 x86_64-pc-windows-gnu 下链接 cdylib 时，MinGW 的自动导出机制会
+# 因 Rust 静态库符号过多而报 "error: export ordinal too large"，因此桌面端移除它们。
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-sql = { version = "2", features = ["sqlite"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

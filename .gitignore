@@ -1,0 +1,25 @@
+# 依赖与构建产物
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/
+
+# pnpm 的内容寻址存储。本机沙箱不允许写工作区之外，pnpm 因此把全局 store 落在仓库里
+# （`pnpm store path` 可确认）。正常机器上它在用户级目录，不会出现在仓库中。
+.pnpm-store/
+
+# 本机（DSH 沙箱）专用的工作区本地工具链与下载缓存，体积很大，不入库。
+# 正常机器上不需要它们：直接安装系统 Rust（x86_64-pc-windows-msvc）即可。
+.rust/
+.toolchain-dl/
+
+# 校验脚本的临时数据库
+.scratch/
+
+# 编辑器 / 系统
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.log
+Thumbs.db
+Desktop.ini

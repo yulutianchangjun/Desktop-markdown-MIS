@@ -1,0 +1,29 @@
+# pnpm settings. pnpm 10+ reads project settings from this file rather than .npmrc.
+#
+# nodeLinker: hoisted
+#   pnpm's default isolated linker creates Windows directory junctions under
+#   node_modules/.pnpm. Node 25's CommonJS resolver does not resolve those junctions when
+#   walking up for a package's dependencies, so @vue/compiler-dom fell through to the
+#   hoisted @vue/compiler-core, whose `entities/decode` import then resolved to the hoisted
+#   entities@4 (markdown-it's copy) instead of entities@7 and crashed vue-tsc with
+#   ERR_PACKAGE_PATH_NOT_EXPORTED. A flat, real-directory layout resolves every package
+#   against its own dependencies, which is what the Vue and Tauri toolchains expect.
+nodeLinker: hoisted
+
+minimumReleaseAgeExclude:
+  - '@tauri-apps/api@2.12.4'
+  - '@tauri-apps/cli-darwin-arm64@2.12.3'
+  - '@tauri-apps/cli-darwin-x64@2.12.3'
+  - '@tauri-apps/cli-linux-arm-gnueabihf@2.12.3'
+  - '@tauri-apps/cli-linux-arm64-gnu@2.12.3'
+  - '@tauri-apps/cli-linux-arm64-musl@2.12.3'
+  - '@tauri-apps/cli-linux-riscv64-gnu@2.12.3'
+  - '@tauri-apps/cli-linux-x64-gnu@2.12.3'
+  - '@tauri-apps/cli-linux-x64-musl@2.12.3'
+  - '@tauri-apps/cli-win32-arm64-msvc@2.12.3'
+  - '@tauri-apps/cli-win32-ia32-msvc@2.12.3'
+  - '@tauri-apps/cli-win32-x64-msvc@2.12.3'
+  - '@tauri-apps/cli@2.12.3'
+  - '@tauri-apps/plugin-dialog@2.8.3'
+  - '@tauri-apps/plugin-fs@2.7.1'
+  - '@tauri-apps/plugin-sql@2.6.0'
