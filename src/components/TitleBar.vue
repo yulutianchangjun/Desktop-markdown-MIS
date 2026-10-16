@@ -43,7 +43,7 @@ async function pickFiles(): Promise<void> {
   <!-- 无边框窗口：整条顶栏为拖拽区域，右侧为原生窗口控制 -->
   <header class="title-bar" data-tauri-drag-region>
     <div class="left" data-tauri-drag-region>
-      <span class="app-name" data-tauri-drag-region>Local DMS</span>
+      <span class="app-name" data-tauri-drag-region>Md-Mis</span>
       <span class="divider" data-tauri-drag-region />
       <span class="crumb" data-tauri-drag-region>
         {{ docs.editorOpen ? docs.current?.title ?? '未命名文档' : '本地 Markdown 文档管理' }}

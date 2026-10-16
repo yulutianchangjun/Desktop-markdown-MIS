@@ -5,9 +5,15 @@
  * 创建，这里只负责 PRAGMA 调优与增删改查。所有 SQL 都使用 `$1` 占位符绑定参数，
  * 不做字符串拼接。
  *
+ * 数据库位置由 Rust 决定（程序同级 `data/data.db`）：这里先向 Rust 要连接串，再交给
+ * plugin-sql。连接串必须与 Rust 注册 migration 时的键完全一致，否则 migration 不会执行。
+ * 传 `autoCreate: false` 是因为文件已由 Rust 建好，同时也避免 plugin-sql 去创建
+ * `%APPDATA%` 下的应用目录（这正是「只能以管理员启动」那个缺陷的根源）。
+ *
  * 具体由谁执行这些 SQL 交给 transport 决定（桌面运行时 = plugin-sql；浏览器预览 =
  * 开发服务器上的 node:sqlite），本模块只关心语句本身。
  */
+import { invoke } from '@tauri-apps/api/core';
 import Database from '@tauri-apps/plugin-sql';
 import {
   isTauriRuntime,
@@ -40,7 +46,8 @@ export interface DocumentMetaPatch {
   tags?: string | null;
 }
 
-export const DB_URL = 'sqlite:data.db';
+/** 浏览器预览模式下由开发服务器使用的库；桌面运行时位置由 Rust 决定。 */
+export const PREVIEW_DB_HINT = '.scratch/preview/data.db';
 export const DEFAULT_CATEGORY = '未分类';
 
 let handle: Promise<SqlTransport> | null = null;
@@ -55,7 +62,9 @@ async function open(): Promise<SqlTransport> {
   let transport: SqlTransport;
 
   if (isTauriRuntime()) {
-    const database = await Database.load(DB_URL);
+    // 位置由 Rust 统一决定：程序同级 data/data.db（便携绿色版）。
+    const connectionUrl = await invoke<string>('db_connection_url');
+    const database = await Database.load(connectionUrl, { autoCreate: false });
     transport = new TauriTransport(database);
   } else if (import.meta.env.DEV) {
     // 浏览器内预览：真正的桌面运行不会走到这里，见 src/db/transport.ts。

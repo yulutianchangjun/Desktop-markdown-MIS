@@ -1,9 +1,9 @@
 {
-  "name": "local-dms",
+  "name": "md-mis",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "本地 Markdown 文档管理系统 (Local DMS)",
+  "description": "Md-Mis 本地 Markdown 文档管理系统",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",

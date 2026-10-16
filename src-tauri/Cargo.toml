@@ -1,13 +1,19 @@
 [package]
-name = "local-dms"
+name = "md-mis"
 version = "0.1.0"
-description = "本地 Markdown 文档管理系统 (Local DMS)"
-authors = ["Local DMS"]
+description = "Md-Mis 本地 Markdown 文档管理系统"
+authors = ["Md-Mis"]
 edition = "2021"
 rust-version = "1.77"
+default-run = "Md-Mis"
+
+# 产物直接叫 Md-Mis.exe（Cargo 的 bin 名就是文件名）。
+[[bin]]
+name = "Md-Mis"
+path = "src/main.rs"
 
 [lib]
-name = "local_dms_lib"
+name = "md_mis_lib"
 # 桌面端只需 rlib：bin 通过它调用 run()。Tauri 模板默认还带 staticlib/cdylib，那是给
 # Android/iOS 用的；在 x86_64-pc-windows-gnu 下链接 cdylib 时，MinGW 的自动导出机制会
 # 因 Rust 静态库符号过多而报 "error: export ordinal too large"，因此桌面端移除它们。

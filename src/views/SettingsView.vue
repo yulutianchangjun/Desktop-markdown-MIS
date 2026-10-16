@@ -29,7 +29,7 @@ onMounted(async () => {
     dbFile.value = '浏览器预览模式：数据库位于工作区 .scratch/preview/data.db';
   } else {
     try {
-      dbFile.value = await invoke<string>('db_path');
+      dbFile.value = await invoke<string>('get_app_data_path');
     } catch (e) {
       dbFile.value = `读取失败：${e instanceof Error ? e.message : String(e)}`;
     }

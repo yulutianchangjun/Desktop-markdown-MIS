@@ -4,17 +4,21 @@ dist/
 src-tauri/target/
 src-tauri/gen/
 
+# 运行时数据目录：便携版把 data/ 放在程序同级，里面是用户的笔记，绝不入库。
+# 发布包同样不得包含任何 data.db —— 数据目录必须由代码在首次运行时按需生成。
+data/
+
 # pnpm 的内容寻址存储。本机沙箱不允许写工作区之外，pnpm 因此把全局 store 落在仓库里
 # （`pnpm store path` 可确认）。正常机器上它在用户级目录，不会出现在仓库中。
 .pnpm-store/
 
-# 本机（DSH 沙箱）专用的工作区本地工具链与下载缓存，体积很大，不入库。
-# 正常机器上不需要它们：直接安装系统 Rust（x86_64-pc-windows-msvc）即可。
-.rust/
-.toolchain-dl/
+# 受限环境下 Cargo 的 registry 缓存与 config.toml（见 tools/rust-env.ps1）。
+.cargo-home/
 
-# 校验脚本的临时数据库
+# 校验脚本的临时数据库与截图用的浏览器配置
 .scratch/
+
+# extra_bins/ 里的运行时 DLL 需要随包分发，因此**不**忽略该目录。
 
 # 编辑器 / 系统
 .vscode/*
