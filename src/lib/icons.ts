@@ -5,7 +5,6 @@
  * 而规范要求应用保持极小打包体积。这里只保留用到的 24×24 描边路径。
  */
 export const ICONS: Record<string, string> = {
-  logo: 'M6 3h7l5 5v13H6z M13 3v5h5 M9 14l2 2 4-4',
   library: 'M4 5h4.5v14H4z M10 5h4.5v14H10z M15.5 5.6l3.6.9-3 13.1-3.6-.9z',
   folder: 'M3 7a2 2 0 0 1 2-2h3.6l1.8 2H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
   timeline: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 7.5V12l3 1.8',

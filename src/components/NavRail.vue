@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, nextTick } from 'vue';
 import AppIcon from './AppIcon.vue';
+import logoUrl from '@/assets/logo.png';
 import { useDocumentsStore, type RouteKey } from '@/stores/documents';
+import { useSettingsStore } from '@/stores/settings';
 
 const docs = useDocumentsStore();
+const settings = useSettingsStore();
 
 interface RailItem {
   key: RouteKey;
@@ -20,6 +23,29 @@ const primary: RailItem[] = [
 ];
 
 const active = computed(() => (docs.editorOpen ? null : docs.route));
+
+/** 等编辑器挂载出可编辑区之后把焦点交给正文（新建文档要能立刻开始敲）。 */
+async function focusEditorBody(attempts = 12): Promise<void> {
+  for (let i = 0; i < attempts; i += 1) {
+    await nextTick();
+    const el = document.querySelector<HTMLElement>('.editor-host .cm-content');
+    if (el) {
+      el.focus();
+      return;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 40));
+  }
+}
+
+/** 快速新建：直接建草稿并进编辑器，不经任何弹窗。 */
+async function handleCreateNewDoc(): Promise<void> {
+  // 纯阅览模式下没有可编辑区，新建时先切到源码模式。
+  if (settings.viewMode === 'preview') await settings.setViewMode('source');
+
+  const id = await docs.createNewDraft();
+  if (id === null) return;
+  await focusEditorBody();
+}
 </script>
 
 <template>
@@ -29,15 +55,19 @@ const active = computed(() => (docs.editorOpen ? null : docs.route));
       <button
         class="brand"
         :class="{ active: docs.route === 'dashboard' && !docs.editorOpen }"
-        title="返回仪表盘"
+        title="首页"
         @click="docs.go('dashboard')"
       >
-        <AppIcon name="logo" :size="22" :stroke-width="1.6" />
+        <img :src="logoUrl" class="brand-logo" alt="Md-Mis" />
       </button>
     </div>
 
     <!-- 中部核心路由区 -->
     <div class="rail-mid">
+      <button class="rail-item create" title="新建文档" @click="handleCreateNewDoc">
+        <AppIcon name="plus" :size="19" />
+        <span class="tip">新建文档</span>
+      </button>
       <button
         v-for="item in primary"
         :key="item.key"
@@ -114,6 +144,28 @@ const active = computed(() => (docs.editorOpen ? null : docs.route));
   color: var(--md-theme-color);
   border-color: color-mix(in srgb, var(--md-theme-color) 50%, transparent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-theme-color) 12%, transparent);
+}
+
+/* 品牌 Logo：方形原图自带米白底，做成圆角小方块后像一枚应用图标 */
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* 「新建文档」快捷入口：用虚线描边强调它是“添加”动作 */
+.rail-item.create {
+  color: var(--md-theme-color);
+  border: 1px dashed color-mix(in srgb, var(--md-theme-color) 45%, transparent);
+}
+.rail-item.create:hover {
+  color: var(--md-theme-color);
+  background: color-mix(in srgb, var(--md-theme-color) 14%, transparent);
+  border-style: solid;
 }
 
 .rail-mid {

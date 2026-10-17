@@ -54,6 +54,35 @@ function stripMarkdownExt(name: string): string {
   return name.replace(/\.(md|markdown|mdx|txt)$/i, '');
 }
 
+/** 新建文档默认归档到的虚拟分类（用户之后可改成任何分类）。 */
+export const NEW_DOC_CATEGORY = '未命名';
+
+/** 兜底标题：`YYYY-MM-DD-HH-mm未命名文件`，例如 `2026-10-17-15-30未命名文件`。 */
+export function timestampDocTitle(date: Date = new Date()): string {
+  const pad = (n: number) => `${n}`.padStart(2, '0');
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `-${pad(date.getHours())}-${pad(date.getMinutes())}未命名文件`
+  );
+}
+
+/** 标题是否还是「自动生成」的兜底名（只有这种标题才允许被正文的一级标题改写）。 */
+export function isAutoDocTitle(title: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}未命名文件$/.test(title.trim());
+}
+
+/**
+ * 从 Markdown 正文里取第一个一级标题。
+ * `^#\s+(.+)$` 限定二级及以下（`##`）不匹配；代码块里的 `# 注释` 也排掉。
+ */
+export function extractLeadingH1(content: string): string | null {
+  const withoutFence = content.replace(/^```[\s\S]*?^```/gm, '');
+  const match = withoutFence.match(/^#\s+(.+)$/m);
+  if (!match) return null;
+  const title = match[1].replace(/\s+#+\s*$/, '').trim();
+  return title || null;
+}
+
 export const useDocumentsStore = defineStore('documents', () => {
   const rows = ref<DocumentRow[]>([]);
   const loading = ref(false);
@@ -216,6 +245,41 @@ export const useDocumentsStore = defineStore('documents', () => {
     editorOpen.value = true;
   }
 
+  /**
+   * 快速新建：直接在库里建一条空草稿并打开编辑器（不经过任何弹窗）。
+   *
+   * 标题先按时间戳兜底；一旦正文里出现 `# 一级标题`，`saveCurrent()` 会把这种
+   * 自动标题替换掉（见下面的 maybeAdoptH1Title）。
+   */
+  async function createNewDraft(): Promise<number | null> {
+    try {
+      const id = await insertDocument({
+        title: timestampDocTitle(),
+        raw_content: '',
+        category: NEW_DOC_CATEGORY,
+      });
+      await load();
+      route.value = 'documents';
+      categoryFilter.value = null;
+      openDocument(id);
+      return id;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : String(e);
+      return null;
+    }
+  }
+
+  /**
+   * 首次保存时用正文的一级标题改写「自动标题」。
+   * 只动时间戳兜底名，用户手动改过的标题不会被覆盖。
+   */
+  async function maybeAdoptH1Title(row: DocumentRow, content: string): Promise<void> {
+    if (!isAutoDocTitle(row.title)) return;
+    const h1 = extractLeadingH1(content);
+    if (!h1 || h1 === row.title) return;
+    await updateDocumentMeta(row.id, { title: h1 });
+  }
+
   function closeEditor(): void {
     editorOpen.value = false;
     selectedId.value = null;
@@ -267,6 +331,8 @@ export const useDocumentsStore = defineStore('documents', () => {
     saveState.value = 'saving';
     try {
       await saveDocumentContent(row.id, draft.value);
+      // 新建的草稿在这里「认领」正文的一级标题，再统一重新加载。
+      await maybeAdoptH1Title(row, draft.value);
       await load();
       saveState.value = 'saved';
       window.setTimeout(() => {
@@ -367,5 +433,6 @@ export const useDocumentsStore = defineStore('documents', () => {
     restore,
     remove,
     patchMeta,
+    createNewDraft,
   };
 });

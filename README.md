@@ -1,6 +1,8 @@
 <div align="center">
 
-# 📝 Md-Mis
+<img src="./src/assets/logo.png" alt="Md-Mis Logo" width="120" height="120" />
+
+# Md-Mis
 
 ### 轻量级本地离线 Markdown 文档管理系统
 
@@ -84,6 +86,16 @@ Md-Mis 是一款基于 **Tauri v2 + Vue 3** 的轻量级本地离线 Markdown �
 
 配套 `Ctrl + S` 即时保存、一键导出 `.md`、以及正文排版主题 / 代码高亮配色的下拉切换。
 三态切换走组件暴露的 `togglePreview()`，**不会重挂载编辑器**，撤销历史与光标位置都保得住。
+
+### ✍️ 一键新建草稿
+
+导航轨品牌区下方有一个 `+` 快捷入口，点一下**直接进入编辑器**，不经过任何弹窗：
+
+- **自动聚焦**：新建后光标立即落在正文里，可以马上开写；若当前是「纯阅览」模式，会自动切到源码模式（阅览态没有可编辑区）。
+- **标题智能命名**：新建时先按时间戳兜底（`YYYY-MM-DD-HH-mm未命名文件`，例如 `2026-10-17-15-30未命名文件`）；
+  首次 `Ctrl + S` 保存时，若正文里出现了 `# 一级标题`，会自动把它提为文档标题（`##` 及以下不参与，代码块里的 `#` 也会被忽略）。
+  手动改过标题的文档不会再被覆盖。
+- **默认归集**：新文档自动落到虚拟分类 **`未命名`** 下，之后在编辑区改分类即可移走。
 
 ### 🗂️ 虚拟多级分类
 
@@ -248,8 +260,11 @@ md-mis/
 ├─ src/                            # ── 前端（Vue 3 + TS）────────────────────
 │  ├─ main.ts                      # 应用入口：Pinia 挂载、拖放兜底
 │  ├─ App.vue                      # 外壳：导航轨 + 顶栏 + 视图切换 + 全局拖拽导入
+│  ├─ assets/
+│  │  ├─ logo.png                  # 图标源图（1024×1024，由 make-logo.py 裁出）
+│  │  └─ logo-source.png           # 原始高分辨率标志，备查
 │  ├─ components/
-│  │  ├─ NavRail.vue               # 72px 图标导航轨（路由 / 计数徽标）
+│  │  ├─ NavRail.vue               # 72px 图标导航轨（品牌区 / 新建 / 路由 / 计数徽标）
 │  │  ├─ TitleBar.vue              # 无边框顶栏：拖拽区、搜索、明暗切换、窗口按钮
 │  │  ├─ BentoCard.vue             # Bento 卡片容器
 │  │  ├─ DocumentList.vue          # 文档列表（标题 / 分类 / 标签 / 相对时间）
@@ -311,11 +326,12 @@ md-mis/
 | `check-deps.ps1` | 核对 exe 的非系统 DLL 依赖是否齐备 |
 | `verify-db.py` | 数据层校验：表结构 / CRUD / WAL / 索引（23 项） |
 | `verify-e2e.mjs` | 端到端校验：驱动界面做写操作再读 SQLite 断言（13 项） |
+| `verify-newdoc.mjs` | 校验「快速新建」链路：新建 → 时间戳标题 → 保存后认领 `# 一级标题` |
 | `inspect-db.mjs` | 打印某个 `data.db` 的内容概览 |
 | `seed-demo.py` | 造演示数据 |
 | `cdp-shot.mjs` | 通过 CDP 驱动界面逐屏截图 |
 | `verify-app.ps1` | 「启动 → 建库 → 结构校验 → 截图」全流程冒烟 |
-| `make-icon.py` | 生成应用图标源图 |
+| `make-logo.py` | 把 `logo-source.png` 裁成 1024×1024 的图标源图 `src/assets/logo.png` |
 | `tauri.ps1` / `cargo.ps1` / `rust-env.ps1` | 封装构建命令（含受限环境适配） |
 
 ---
