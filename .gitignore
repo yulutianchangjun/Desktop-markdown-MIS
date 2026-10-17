@@ -1,29 +1,71 @@
-# 依赖与构建产物
+# ============================================================
+# Md-Mis · Git 忽略规则
+# 目标：仓库只保留源码、配置与锁文件；产物与本地缓存一律不入库。
+# 配套清理脚本：tools/clean-workspace.ps1
+# ============================================================
+
+# ---------- 前端依赖与构建产物 ----------
 node_modules/
 dist/
-src-tauri/target/
-src-tauri/gen/
+dist-ssr/
+.vite/
+*.tsbuildinfo
 
-# 运行时数据目录：便携版把 data/ 放在程序同级，里面是用户的笔记，绝不入库。
-# 发布包同样不得包含任何 data.db —— 数据目录必须由代码在首次运行时按需生成。
-data/
-
-# pnpm 的内容寻址存储。本机沙箱不允许写工作区之外，pnpm 因此把全局 store 落在仓库里
-# （`pnpm store path` 可确认）。正常机器上它在用户级目录，不会出现在仓库中。
+# pnpm 内容寻址存储（正常机器在用户级目录；受限环境下会落在仓库内）
 .pnpm-store/
 
-# 受限环境下 Cargo 的 registry 缓存与 config.toml（见 tools/rust-env.ps1）。
+# ---------- Rust / Tauri 构建产物 ----------
+src-tauri/target/
+src-tauri/gen/
+# 受限环境下 Cargo 的 registry 缓存与 config（见 tools/rust-env.ps1）
 .cargo-home/
 
-# 校验脚本的临时数据库与截图用的浏览器配置
+# ---------- 应用运行时数据（用户笔记，绝不入库）----------
+# 便携版把 data/ 放在可执行文件同级；发布包同样不得包含任何 data.db。
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+# 例外：迁移脚本里的示例数据库（如有）应显式放行，按需取消注释
+# !docs/examples/*.db
+
+# ---------- 本地校验 / 截图 / 沙箱临时物 ----------
+shots/
 .scratch/
+.rust/
+.toolchain-dl/
+.dsh/
 
-# extra_bins/ 里的运行时 DLL 需要随包分发，因此**不**忽略该目录。
+# ---------- 日志 ----------
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
 
-# 编辑器 / 系统
+# ---------- 编辑器 / IDE ----------
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json.example
 .idea/
-*.log
+*.iml
+*.suo
+*.user
+
+# ---------- 操作系统 ----------
+.DS_Store
+._*
 Thumbs.db
 Desktop.ini
+$RECYCLE.BIN/
+
+# ---------- 签名与密钥（如需签名发布，请通过 CI 注入）----------
+*.pem
+*.pfx
+*.key
+.env
+.env.*
+!.env.example
+
+# ---------- 注意 ----------
+# extra_bins/（若将来确实需要随包分发某个 DLL）必须入库，故不在忽略列表中。
