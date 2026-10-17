@@ -43,7 +43,14 @@ node -v            # 需要 >= 20
 pnpm -v            # 需要 >= 9
 rustc -vV          # 确认 host 是 x86_64-pc-windows-gnu
 gcc --version      # MinGW64 必须在 PATH（Rust 的 gnu 目标用它做链接器）
+echo %TEMP%        # 必须指向一个真实存在且可写的目录！
+dir   %TEMP%       # 不存在的话执行 mkdir "%TEMP%"
 ```
+
+> ⚠️ **`TEMP` 一定要真实存在。** `libsqlite3-sys` 会用 gcc 编译 `sqlite3.c`，gcc 必须能在
+> `TEMP` 下建中间文件；目录不存在时 gcc 直接崩，而这个错误只会以
+> `libsqlite3-sys: Cannot create temporary file …` 的形式出现，很容易被误判成代码问题。
+> 详见第 6 节故障速查表。
 
 也可以在仓库里直接用封装脚本（它会替你设好环境变量）：
 
@@ -503,7 +510,9 @@ node tools/inspect-db.mjs "<安装目录>\data\data.db"
 | `WebView2 error: WindowsError(0x8000FFFF 灾难性错误)` | WebView2 运行时初始化失败 | `webviewInstallMode` 配 `downloadBootstrapper/offlineInstaller`；确认系统已装 WebView2 |
 | 新机器启动报 **`0xC0000135`** | 缺 `WebView2Loader.dll`（不是 MinGW 运行库） | 便携版必须同时分发 `WebView2Loader.dll`；用 `tools/check-deps.ps1` 核实 |
 | `error: export ordinal too large: 66252` | `crate-type` 里带了 `cdylib` | 收窄为 `["rlib"]` |
+| **依赖编译了一大堆，但 `target/release` 里就是没有 exe**<br>`libsqlite3-sys: Cannot create temporary file in <TEMP>: Permission denied`（或 `No such file or directory`）<br>`cc-rs: gcc.exe … -c sqlite3/sqlite3.c` → 退出码 `0xc0000409` | **`TEMP`/`TMP` 指向的目录不存在或不可写。** `libsqlite3-sys` 是工程里唯一需要 C 编译的依赖（把 `sqlite3.c` 用 gcc 编成 `.o`），而 gcc 必须在 `TEMP` 下创建中间文件；创建失败时 gcc 直接 fail-fast（`0xC0000409`），于是 `libsqlite3-sys` 拿不到 rlib，`tauri` / `tauri-plugin-sql` / 本 crate 全部连带失败 | 先确认变量与目录：<br>`echo %TEMP%`<br>`dir "%TEMP%"`<br>若目录不存在就直接建出来：`mkdir "%TEMP%"`（用户级变量可能指向 `E:\Temp` 这类自定义盘符，换了机器/清理过系统就很容易丢）。修好后重跑 `pnpm tauri build` 即可，无需 `cargo clean` |
 | 链接器报找不到 `gcc` / `windres` | MinGW 不在 PATH | 把 `MinGW64\bin` 加入 PATH，或按 `src-tauri/.cargo/config.toml` 显式指定 |
+| PATH 上同时有多个 MinGW（如 Conda 自带一套） | 两套工具链混用会导致缺库或运行期 DLL 不一致 | 确认 `where gcc` 第一条是预期的 MinGW；必要时把它的 `bin` 放到 PATH 最前面 |
 | `beforeBuildCommand` 失败但只想先看 exe | 类型检查没过 | 修正类型错误；不要用 `--no-before-build-command` 绕过 |
 | 打安装包时卡在 `Downloading nsis-3.13.zip` | 直连 GitHub 超时 | 设 `$env:TAURI_BUNDLER_TOOLS_GITHUB_MIRROR = 'https://ghfast.top/https://github.com'` |
 | 打包报 `extracting NSIS … 拒绝访问` 或 `failed to bundle project` | Tauri 把工具链解压到 `%LOCALAPPDATA%\tauri`，该目录不可写 | 确认该目录可写（或被安全软件拦截）；缓存建好后再次打包即可 |

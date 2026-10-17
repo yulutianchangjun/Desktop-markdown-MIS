@@ -437,6 +437,7 @@ docs(packaging): 补充 WebView2 离线安装模式
 | --- | --- | --- |
 | `pnpm tauri dev` 报找不到 `gcc` / `windres` | MinGW 不在 PATH | 把 `MinGW64\bin` 加入 PATH，或检查 `src-tauri/.cargo/config.toml` |
 | 编译报 `error: export ordinal too large` | `crate-type` 里带了 `cdylib` | 保持 `crate-type = ["rlib"]` |
+| **依赖都编译完了，但就是没有 exe**<br>`libsqlite3-sys: Cannot create temporary file in …`<br>`cc-rs: gcc.exe … -c sqlite3/sqlite3.c` → `0xc0000409` | **`TEMP`/`TMP` 指向了一个不存在的目录**。`libsqlite3-sys` 要用 gcc 编译 `sqlite3.c`，而 gcc 必须在 `TEMP` 下建中间文件；建不出来就直接崩，导致 `libsqlite3-sys` 拿不到 rlib，`tauri` / `tauri-plugin-sql` / 本 crate 全部连带失败 | 确认 `TEMP`/`TMP`（`echo %TEMP%`）指向**真实存在且可写**的目录，缺了就建出来：`mkdir <该路径>`。这是实际踩过的坑，见 [docs/PACKAGING.md](docs/PACKAGING.md) 故障速查表 |
 | 双击 exe 没反应 | 启动期失败但旧版静默 panic | 看 `<安装目录>/data/startup.log`；现在会同时弹错误框 |
 | 报 `拒绝访问 (os error 5)` | 程序所在目录不可写，建不了 `data/` | 放到用户可写目录，别塞进 `C:\Program Files` |
 | 新机器报 `0xC0000135` | 便携版缺 `WebView2Loader.dll` | 与 exe 一起复制；用 `tools/check-deps.ps1` 核实 |
